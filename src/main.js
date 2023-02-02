@@ -1,8 +1,12 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.118/build/three.module.js';
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.125/build/three.module.js';
 
-import {GLTFLoader} from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/GLTFLoader.js';
+import {FBXLoader} from 'https://cdn.jsdelivr.net/npm/three@0.125/examples/jsm/loaders/FBXLoader.js';
+import {GLTFLoader} from 'https://cdn.jsdelivr.net/npm/three@0.125/examples/jsm/loaders/GLTFLoader.js';
+import {OrbitControls} from 'https://cdn.jsdelivr.net/npm/three@0.125/examples/jsm/controls/OrbitControls.js';
+import {EffectComposer} from 'https://cdn.jsdelivr.net/npm/three@0.125/examples/jsm/postprocessing/EffectComposer.js';
+import {RenderPass} from 'https://cdn.jsdelivr.net/npm/three@0.122/examples/jsm/postprocessing/RenderPass.js';
 
-//import MyScene from './models.js';
+
 
 
 const KEYS = {
@@ -42,16 +46,18 @@ class InputController {
   }
 
   onMouseMove_(e) {
-    this.current_.mouseX = e.pageX - window.innerWidth / 2;
-    this.current_.mouseY = e.pageY - window.innerHeight / 2;
+    this.current_.mouseX = e.clientX;
+    this.current_.mouseY = e.clientY;
 
     if (this.previous_ === null) {
       this.previous_ = {...this.current_};
     }
 
-    this.current_.mouseXDelta = this.current_.mouseX - this.previous_.mouseX;
-    this.current_.mouseYDelta = this.current_.mouseY - this.previous_.mouseY;
+    this.current_.mouseXDelta = e.clientX - this.previous_.mouseX;
+    this.current_.mouseYDelta = e.clientY - this.previous_.mouseY;
+    this.previous_ = {...this.current_};
   }
+
 
   onMouseDown_(e) {
     this.onMouseMove_(e);
@@ -111,7 +117,7 @@ class InputController {
 
 
 class FirstPersonCamera {
-  constructor(camera, objects) {
+  constructor(camera, objects, renderer) {
     this.camera_ = camera;
     this.input_ = new InputController();
     this.rotation_ = new THREE.Quaternion();
@@ -124,6 +130,9 @@ class FirstPersonCamera {
     this.headBobTimer_ = 0;
     this.objects_ = objects;
   }
+    
+
+    
 
   update(timeElapsedS) {
     this.updateRotation_(timeElapsedS);
@@ -234,13 +243,17 @@ class FirstPersonCameraDemo {
     this.onWindowResize_();
   }
 
-  initializeDemo_() {
-    // this.controls_ = new FirstPersonControls(
-     //    this.camera_, this.threejs_.domElement);
-    // this.controls_.lookSpeed = 0.1;
-    // this.controls_.movementSpeed = 10;
+  
 
-    this.fpsCamera_ = new FirstPersonCamera(this.camera_, this.objects_);
+  initializeDemo_() {
+    //this.controls_ = new FirstPersonControls(
+    //this.camera_, this.threejs_.domElement);
+    //this.controls_.lookSpeed = 0.1;
+    //this.controls_.movementSpeed = 10;
+    this.fpsCamera_ = new FirstPersonCamera(this.camera_, this.objects_, this.renderer);
+  
+
+
   }
 
   initializeRenderer_() {
@@ -279,10 +292,10 @@ class FirstPersonCameraDemo {
     const texture = loader.load([
     './resources/skybox/Spacebox_left.png',
     './resources/skybox/Spacebox_right.png',
-      './resources/skybox/Spacebox_top.png',
+      './resources/skybox/Spacebox_top1.png',
       './resources/skybox/Spacebox_bottom.png',
       './resources/skybox/Spacebox_front.png',
-      './resources/skybox/Spacebox_back.png',
+      './resources/skybox/Spacebox_back1.png',
   ]);
 
 
@@ -337,6 +350,39 @@ class FirstPersonCameraDemo {
         model.rotation.set(0, 0, 0);
         model.scale.set(0.05, 0.05, 0.05);
         this.scene_.add(model);
+      });
+
+      gltfLoader.load('resources/woman/scene.gltf', (gltf) => {
+        const model2 = gltf.scene;
+        model2.traverse(object => {
+          object.castShadow = true;
+        });
+        model2.position.set(50, 10, 1);
+        model2.rotation.set(0, -Math.PI/2, 0);
+        model2.scale.set(0.1, 0.1, 0.1);
+        this.scene_.add(model2);
+      });
+
+      gltfLoader.load('resources/tree/tree.gltf', (gltf) => {
+        const model3 = gltf.scene;
+        model3.traverse(object => {
+          object.castShadow = true;
+        });
+        model3.position.set(5, 0, 10);
+        model3.rotation.set(0, -Math.PI/2, 0);
+        model3.scale.set(2, 2, 2);
+        this.scene_.add(model3);
+      });
+
+      gltfLoader.load('resources/tree/tree.gltf', (gltf) => {
+        const model4 = gltf.scene;
+        model4.traverse(object => {
+          object.castShadow = true;
+        });
+        model4.position.set(0, 0, 0);
+        model4.rotation.set(0, 0, 0);
+        model4.scale.set(1, 1, 1);
+        this.scene_.add(model4);
       });
 
     }
